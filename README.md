@@ -64,6 +64,31 @@ Implement the ADNLoginDelegate protocol methods:
 }
 ```
 
+### With Blocks
+
+Another method to just get the login information without having to manage anything and using blocks is just to use this function
+
+```objc
+[ADNLogin loginWithScopes:(NSArray *)scopes completion:(void(^)(NSString *userId, NSString *accessToken, NSError *error))aCompletion{
+    if(error){
+        // Error handling here
+    }
+    else{
+        // Success case here
+    }
+}];
+```
+
+Keep in mind that the login SDK still needs to have the opportunity to handle any open URL which comes back:
+
+```objc
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
+    return [ADNLogin openActiveSessionURL:url sourceApplication:sourceApplication annotation:annotation];
+ }
+```
+
+### Credential Storage
+
 Credential storage is currently out of scope of the SDK. Please be sure to store credentials securely, i.e., in the Keychain as opposed to being stashed in NSUserDefaults. We suggest [SSKeychain](https://github.com/soffes/sskeychain) for this purpose.
 
 Of course, please feel free to deviate from these directions if you know what you're doing. ;) Everyone has their own habits and preferences when it comes to code -- and that seems to be especially true for ObjC.

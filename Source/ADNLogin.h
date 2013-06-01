@@ -55,7 +55,7 @@ static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
 /**
  The primary object in the ADNLogin SDK. Generally, you will create an instance of this and store it on your app delegate.
  */
-@interface ADNLogin : NSObject
+@interface ADNLogin : NSObject <ADNLoginDelegate>
 
 /**
  The SDK delegate.
@@ -76,6 +76,16 @@ static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
  @return `YES` if the App.net was launched to request login, `NO` if it was not installed or unable to open
  */
 - (BOOL)loginWithScopes:(NSArray *)scopes;
+
+/**
+ Request login, with return block.
+ 
+ @param scopes A list of the requested authentication scopes.
+ @param completion The completion block
+ 
+ @return `YES` if the App.net was launched to request login, `NO` if it was not installed or unable to open
+ */
++ (BOOL)loginWithScopes:(NSArray *)scopes completion:(void(^)(NSString *userId, NSString *accessToken, NSError *error))aCompletion;
  
 /**
  Call this method from your app delegate's `application:openURL:sourceApplication:annotation:` method.
@@ -87,6 +97,17 @@ static NSString *const kADNLoginErrorDomain = @"ADNLoginErrorDomain";
  @return `YES` if the ADNLogin SDK handled the request, `NO` if it did not
  */
 - (BOOL)openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation;
+
+/**
+ Call this method from your app delegate's `application:openURL:sourceApplication:annotation:` method.
+ 
+ @param url The URL of the request
+ @param sourceApplication The bundle ID of the opening application
+ @param annotation The supplied annotation
+ 
+ @return `YES` if the ADNLogin SDK handled the request, `NO` if it did not
+ */
++ (BOOL)openActiveSessionURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation;
 
 /**
  Determine whether signup (without an invite) is currently available. Signup with invite link is always available in the app.

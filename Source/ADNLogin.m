@@ -35,6 +35,9 @@ static NSString *const kADNLoginAppInstallURL = @"itms-apps://itunes.apple.com/u
 
 static NSString *const kADNLoginMissingURLSchemeErrorMessage = @"ADNLogin URL scheme must be in the format 'adnNNNNsuffix'";
 
+static ADNLogin *activeSession;
+static void (^activeSessionCompletionBlock)(NSString *userId, NSString *accessToken, NSError *error);
+
 @interface ADNLogin ()
 
 @property (strong, nonatomic) NSString *clientID;
@@ -206,6 +209,15 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	return [[UIApplication sharedApplication] openURL:url];
 }
 
++ (BOOL)loginWithScopes:(NSArray *)scopes completion:(void(^)(NSString *userId, NSString *accessToken, NSError *error))aCompletion{
+    activeSession = nil;
+    activeSession = [[ADNLogin alloc] init];
+    activeSession.delegate = activeSession;
+
+    activeSessionCompletionBlock = aCompletion;
+    return [activeSession loginWithScopes:scopes];
+}
+
 - (BOOL)openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
 	if ([url.scheme isEqualToString:self.primaryScheme]) {
 		if (sourceApplication != nil && !([sourceApplication isEqualToString:@"net.app.moana"] || [sourceApplication hasPrefix:@"net.app.moana."])) {
@@ -240,8 +252,31 @@ static NSDictionary *parametersForQueryString(NSString *queryString) {
 	return NO;
 }
 
++ (BOOL)openActiveSessionURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation{
+    return [activeSession openURL:url sourceApplication:sourceApplication annotation:annotation];
+}
+
 - (BOOL)installLoginApp {
 	return [[UIApplication sharedApplication] openURL:[NSURL URLWithString:kADNLoginAppInstallURL]];
+}
+
+#pragma mark -
+#pragma mark ADNDelegates implemented for ease of use
+
+- (void)adnLoginDidSucceedForUserWithID:(NSString *)userID token:(NSString *)accessToken{
+    if(activeSessionCompletionBlock){
+        activeSessionCompletionBlock(userID, accessToken, nil);
+        activeSession = nil;
+        activeSessionCompletionBlock = nil;
+    }
+}
+
+- (void)adnLoginDidFailWithError:(NSError *)error{
+    if(activeSessionCompletionBlock){
+        activeSessionCompletionBlock(nil, nil, error);
+        activeSession = nil;
+        activeSessionCompletionBlock = nil;
+    }
 }
 
 @end
